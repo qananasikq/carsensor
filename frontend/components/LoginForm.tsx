@@ -2,9 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { setTokenCookie } from "@/lib/auth";
-
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:4000";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -19,10 +16,11 @@ export default function LoginForm() {
     setError("");
 
     try {
-      const response = await fetch(`${BACKEND_URL}/api/login`, {
+      const response = await fetch(`/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ login, password })
+        body: JSON.stringify({ login, password }),
+        credentials: "include"
       });
 
       const data = await response.json();
@@ -32,7 +30,6 @@ export default function LoginForm() {
         return;
       }
 
-      setTokenCookie(data.token);
       router.push("/cars");
       router.refresh();
     } catch (error) {
@@ -43,24 +40,24 @@ export default function LoginForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="panel w-full max-w-md p-6 md:p-7">
-      <h1 className="text-2xl font-semibold tracking-tight">Вход</h1>
-      <p className="mt-2 text-sm text-slate-600">Введите логин и пароль администратора.</p>
+    <form onSubmit={handleSubmit} autoComplete="off" className="panel w-full max-w-md p-5 sm:p-6 md:p-7">
+      <h1 className="text-2xl font-semibold tracking-tight sm:text-[30px]">Вход</h1>
+      <p className="mt-2 text-sm leading-6 text-slate-600">Введите логин и пароль администратора.</p>
 
       <div className="mt-6 space-y-4">
         <div>
           <label className="mb-1 block text-sm font-medium">Логин</label>
-          <input value={login} onChange={(e) => setLogin(e.target.value)} className="field w-full" />
+          <input value={login} onChange={(e) => setLogin(e.target.value)} className="field min-h-[46px] w-full" autoComplete="off" />
         </div>
         <div>
           <label className="mb-1 block text-sm font-medium">Пароль</label>
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="field w-full" />
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="field min-h-[46px] w-full" autoComplete="off" />
         </div>
       </div>
 
       {error ? <p className="mt-4 text-sm text-red-600">{error}</p> : null}
 
-      <button disabled={loading} className="btn-primary mt-6 w-full py-3 disabled:opacity-60">
+      <button disabled={loading} className="btn-primary mt-6 min-h-[48px] w-full py-3 disabled:opacity-60">
         {loading ? "Проверка данных..." : "Войти"}
       </button>
     </form>

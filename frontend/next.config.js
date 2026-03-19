@@ -7,8 +7,11 @@ const nextConfig = {
     deviceSizes: [640, 768, 1024, 1280, 1536],
     imageSizes: [96, 128, 256, 384],
     remotePatterns: [
-      { protocol: 'https', hostname: '**' },
-      { protocol: 'http', hostname: '**' }
+      { protocol: "https", hostname: "*.carsensor.net" },
+      { protocol: "https", hostname: "carsensor.net" },
+      { protocol: "https", hostname: "*.cdn-carsensor.net" },
+      { protocol: "https", hostname: "*.googlesyndication.com" },
+      { protocol: "https", hostname: "placehold.co" }
     ]
   }
 };

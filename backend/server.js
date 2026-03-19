@@ -3,6 +3,7 @@ const cors = require("cors");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
+const rateLimit = require("express-rate-limit");
 const { auth } = require("./middleware/auth");
 const { buildCarsQuery } = require("./utils/buildCarsQuery");
 const { carSchemaDefinition } = require("../shared/carSchema");
@@ -31,6 +32,14 @@ const app = express();
 app.disable("x-powered-by");
 app.use(cors({ origin: readCorsOrigins(), credentials: true }));
 app.use(express.json());
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Слишком много попыток входа. Повторите позже." }
+});
 
 const carSchema = new mongoose.Schema(carSchemaDefinition, {
   timestamps: true,
@@ -61,7 +70,7 @@ app.get("/api/health", async (_req, res) => {
   });
 });
 
-app.post("/api/login", (req, res) => {
+app.post("/api/login", loginLimiter, (req, res) => {
   const { login, password } = req.body || {};
 
   if (login !== process.env.ADMIN_LOGIN || password !== process.env.ADMIN_PASSWORD) {

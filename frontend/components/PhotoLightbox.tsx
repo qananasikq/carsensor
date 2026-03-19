@@ -80,37 +80,37 @@ export default function PhotoLightbox({ title, images, activeIndex, isOpen, onCl
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950/92" onClick={onClose} role="dialog" aria-modal="true" aria-label={title || "Просмотр фотографий"}>
-      <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between gap-3 px-4 py-4 sm:px-6">
-        <div className="rounded-full bg-black/35 px-3 py-1.5 text-sm text-white/90 ring-1 ring-white/15">
+      <div className="absolute inset-x-0 top-0 z-10 flex items-center justify-between gap-3 px-3 py-3 sm:px-6 sm:py-4">
+        <div className="rounded-full bg-black/35 px-3 py-1.5 text-xs text-white/90 ring-1 ring-white/15 sm:text-sm">
           {safeIndex + 1} / {total}
         </div>
         <button
           type="button"
           onClick={onClose}
-          className="rounded-full bg-white/10 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/20"
+          className="rounded-full bg-white/10 px-3 py-2 text-xs font-medium text-white transition hover:bg-white/20 sm:text-sm"
           aria-label="Закрыть просмотр"
         >
           Закрыть
         </button>
       </div>
 
-      <div className="flex h-full flex-col items-center justify-center px-4 pb-4 pt-20 sm:px-6">
+      <div className="flex h-full flex-col items-center justify-center px-2 pb-2 pt-16 sm:px-6 sm:pb-4 sm:pt-20">
         <div
-          className="relative flex w-full max-w-4xl flex-1 items-center justify-center rounded-[28px] border border-white/10 bg-white/[0.04] px-4 py-4 shadow-2xl sm:px-6"
+          className="relative flex w-full max-w-4xl flex-1 items-center justify-center rounded-[22px] border border-white/10 bg-white/[0.04] px-2 py-2 shadow-2xl sm:rounded-[28px] sm:px-6 sm:py-4"
           onClick={(event: MouseEvent<HTMLDivElement>) => event.stopPropagation()}
         >
           {total > 1 ? (
             <button
               type="button"
               onClick={goPrev}
-              className="absolute left-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/45 px-3 py-3 text-lg text-white transition hover:bg-black/65 sm:left-4"
+              className="absolute bottom-3 left-3 z-10 rounded-full bg-black/55 px-3 py-2 text-sm text-white transition hover:bg-black/65 sm:bottom-auto sm:left-4 sm:top-1/2 sm:-translate-y-1/2 sm:px-3 sm:py-3 sm:text-lg"
               aria-label="Предыдущее фото"
             >
-              Назад
+              ←
             </button>
           ) : null}
 
-          <div className="relative h-[45vh] w-full max-w-3xl sm:h-[60vh]">
+          <div className="relative h-[50vh] w-full max-w-3xl sm:h-[60vh]">
             <Image
               src={activeSrc}
               alt={`${title} ${safeIndex + 1}`}
@@ -128,22 +128,22 @@ export default function PhotoLightbox({ title, images, activeIndex, isOpen, onCl
             <button
               type="button"
               onClick={goNext}
-              className="absolute right-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/45 px-3 py-3 text-lg text-white transition hover:bg-black/65 sm:right-4"
+              className="absolute bottom-3 right-3 z-10 rounded-full bg-black/55 px-3 py-2 text-sm text-white transition hover:bg-black/65 sm:bottom-auto sm:right-4 sm:top-1/2 sm:-translate-y-1/2 sm:px-3 sm:py-3 sm:text-lg"
               aria-label="Следующее фото"
             >
-              Далее
+              →
             </button>
           ) : null}
         </div>
 
         {showThumbnails && total > 1 ? (
-          <div className="mt-4 flex w-full max-w-4xl gap-3 overflow-x-auto pb-1" onClick={(event: MouseEvent<HTMLDivElement>) => event.stopPropagation()}>
+          <div className="mt-3 flex w-full max-w-4xl gap-2 overflow-x-auto px-1 pb-1 sm:mt-4 sm:gap-3" onClick={(event: MouseEvent<HTMLDivElement>) => event.stopPropagation()}>
             {images.map((image, index) => (
               <button
                 key={`${image}-${index}`}
                 type="button"
                 onClick={() => onChange(index)}
-                className={`relative h-20 w-28 shrink-0 overflow-hidden rounded-2xl border transition ${
+                className={`relative h-16 w-24 shrink-0 overflow-hidden rounded-xl border transition sm:h-20 sm:w-28 sm:rounded-2xl ${
                   index === safeIndex ? "border-white ring-2 ring-white/80" : "border-white/15 hover:border-white/40"
                 }`}
                 aria-label={`Открыть фото ${index + 1}`}

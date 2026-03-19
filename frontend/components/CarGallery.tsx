@@ -35,7 +35,7 @@ export default function CarGallery({ title, images }: Props) {
   return (
     <>
       <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
-        <div className={`grid ${hasMultiple ? "grid-cols-[1fr_120px] sm:grid-cols-[1fr_140px]" : "grid-cols-1"} gap-1`}>
+        <div className={`grid ${hasMultiple ? "grid-cols-1 md:grid-cols-[1fr_120px] lg:grid-cols-[1fr_140px]" : "grid-cols-1"} gap-1`}>
           <button
             type="button"
             onClick={() => setIsOpen(true)}
@@ -56,19 +56,19 @@ export default function CarGallery({ title, images }: Props) {
             <div className="absolute bottom-3 left-3 rounded-md bg-slate-900/80 px-2.5 py-1 text-xs font-medium text-white">
               {active + 1} / {normalized.length}
             </div>
-            <div className="absolute bottom-3 right-3 rounded-md bg-white/90 px-2.5 py-1 text-xs font-medium text-slate-700 opacity-0 transition group-hover:opacity-100">
+            <div className="absolute bottom-3 right-3 rounded-md bg-white/90 px-2.5 py-1 text-xs font-medium text-slate-700 opacity-100 md:opacity-0 md:transition md:group-hover:opacity-100">
               Открыть
             </div>
           </button>
 
           {hasMultiple ? (
-            <div className="flex flex-col gap-1">
+            <div className="flex gap-1 overflow-x-auto p-1 md:flex-col md:overflow-visible md:p-0">
               {sideImages.map((img, index) => (
                 <button
                   key={`${img}-${index}`}
                   type="button"
                   onClick={() => setActive(index)}
-                  className={`relative flex-1 min-h-0 overflow-hidden bg-slate-100 transition ${
+                  className={`relative h-20 w-24 shrink-0 overflow-hidden rounded-xl bg-slate-100 transition md:h-auto md:w-auto md:flex-1 md:min-h-0 md:rounded-none ${
                     index === active
                       ? "ring-2 ring-inset ring-slate-700"
                       : "hover:opacity-85"

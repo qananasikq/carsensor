@@ -17,6 +17,10 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -32,8 +36,16 @@ select {
   font: inherit;
 }
 
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
 .container-main {
-  @apply mx-auto w-full max-w-7xl px-4 sm:px-6;
+  @apply mx-auto w-full max-w-7xl px-3 sm:px-6;
 }
 
 .panel {
@@ -41,7 +53,7 @@ select {
 }
 
 .field {
-  @apply rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm shadow-sm placeholder:text-slate-400 transition;
+  @apply min-h-[44px] rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-base shadow-sm placeholder:text-slate-400 transition sm:text-sm;
 }
 
 .field-select {
@@ -62,7 +74,7 @@ select {
 }
 
 .btn-primary {
-  @apply rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition;
+  @apply min-h-[44px] rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition;
 }
 
 .btn-primary:hover {
@@ -70,7 +82,7 @@ select {
 }
 
 .btn-soft {
-  @apply rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition;
+  @apply min-h-[44px] rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition;
 }
 
 .btn-soft:hover {
@@ -88,4 +100,10 @@ select:focus {
   outline: none;
   border-color: #3b82f6;
   box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+@media (max-width: 640px) {
+  body {
+    overflow-x: hidden;
+  }
 }

@@ -10,8 +10,8 @@ export default function FilterBar({ current }: Props) {
           Поиск и фильтры
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
-        <div className="col-span-2 sm:col-span-3 lg:col-span-2 xl:col-span-2">
+      <div className="grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
+        <div className="sm:col-span-2 lg:col-span-2 xl:col-span-2">
           <label className="mb-1.5 block text-xs font-medium text-slate-500">Поиск</label>
           <input name="search" defaultValue={current.search || ""} placeholder="По названию, бренду или модели" className="field w-full" />
         </div>
@@ -81,8 +81,11 @@ export default function FilterBar({ current }: Props) {
         </div>
 
         <input type="hidden" name="page" value="1" />
-        <div className="col-span-2 flex items-end sm:col-span-1">
+        <div className="flex flex-col gap-2 sm:col-span-2 sm:flex-row lg:col-span-2 xl:col-span-1 xl:flex-col xl:justify-end">
           <button className="btn-primary w-full active:scale-[0.98]">Применить</button>
+          <a href="/cars" className="btn-soft w-full text-center">
+            Сбросить
+          </a>
         </div>
       </div>
     </form>
