@@ -1,0 +1,20 @@
+{
+  "fuel": {
+    "ガソリン": "petrol",
+    "ハイブリッド": "hybrid",
+    "ディーゼル": "diesel",
+    "電気": "electric"
+  },
+  "transmission": {
+    "CVT": "cvt",
+    "AT": "automatic",
+    "MT": "manual"
+  },
+  "drive": {
+    "4WD": "awd",
+    "2WD": "fwd",
+    "AWD": "awd",
+    "FF": "fwd",
+    "FR": "rwd"
+  }
+}

@@ -1,0 +1,54 @@
+export type Car = {
+  _id: string;
+  sourceSite: string;
+  sourceId: string;
+  sourceUrl: string;
+  title: string;
+  brand: string;
+  model: string;
+  year: number | null;
+  mileage: number | null;
+  price: number | null;
+  priceTotal: number | null;
+  extraCosts: number | null;
+  priceRub: number | null;
+  priceTotalRub: number | null;
+  extraCostsRub: number | null;
+  currency: string;
+  region: string;
+  color: string;
+  transmission: string;
+  fuel: string;
+  engineVolume: string;
+  bodyType: string;
+  drive: string;
+  steering: string;
+  doors: string;
+  seats: string;
+  inspection: string;
+  repairHistory: string;
+  oneOwner: string;
+  nonSmoking: string;
+  seller: string;
+  dealerPhone: string;
+  sellerAddress: string;
+  vinTail: string;
+  warranty: string;
+  service: string;
+  imageUrls: string[];
+  features: string[];
+  description: string;
+  rawSpecs: Record<string, string>;
+  scrapedAt: string;
+  lastSeenAt: string;
+};
+
+export type CarsResponse = {
+  items: Car[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
+};
