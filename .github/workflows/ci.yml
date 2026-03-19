@@ -70,6 +70,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Create placeholder env files for compose
+        run: |
+          touch backend/.env
+          touch scraper/.env
+          touch frontend/.env
+
       - name: Validate compose (dev)
         run: docker compose -f docker-compose.yml config
 
