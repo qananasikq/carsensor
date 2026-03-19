@@ -31,6 +31,22 @@ services:
     depends_on:
       mongo:
         condition: service_healthy
+      python-service:
+        condition: service_started
+
+  python-service:
+    build:
+      context: .
+      dockerfile: python-service/Dockerfile
+    container_name: carsensor-python-service
+    restart: unless-stopped
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
 
   scraper:
     build:

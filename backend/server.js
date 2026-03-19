@@ -28,6 +28,32 @@ function checkEnv() {
   }
 }
 
+function getPythonServiceUrl() {
+  return process.env.PYTHON_SERVICE_URL || "http://python-service:8000";
+}
+
+async function normalizeSearch(searchValue) {
+  if (!searchValue) return String(searchValue || "");
+
+  try {
+    const response = await fetch(`${getPythonServiceUrl()}/normalize-search`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ value: String(searchValue) })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Python service returned ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data?.normalized || String(searchValue);
+  } catch (error) {
+    console.warn("Python normalizer unavailable, using raw search:", error.message);
+    return String(searchValue);
+  }
+}
+
 const app = express();
 app.disable("x-powered-by");
 app.use(cors({ origin: readCorsOrigins(), credentials: true }));
@@ -91,9 +117,15 @@ app.post("/api/login", loginLimiter, (req, res) => {
 
 app.get("/api/cars", auth, async (req, res) => {
   try {
+    const normalizedSearch = await normalizeSearch(req.query.search);
+    const query = {
+      ...req.query,
+      search: normalizedSearch
+    };
+
     const page = Math.max(Number(req.query.page) || 1, 1);
     const limit = Math.min(Math.max(Number(req.query.limit) || 12, 1), 50);
-    const { filter, sort } = buildCarsQuery(req.query);
+    const { filter, sort } = buildCarsQuery(query);
 
     const [items, total] = await Promise.all([
       Car.find(filter)
