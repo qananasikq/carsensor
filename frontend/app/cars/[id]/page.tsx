@@ -23,7 +23,10 @@ export default async function CarDetailPage({ params }: Props) {
       <main className="container-main py-8">
         <div className="panel p-6">
           <p>Автомобиль не найден.</p>
-          <Link href="/cars" className="mt-4 inline-block text-sm text-blue-600">Вернуться к списку</Link>
+          <Link href="/cars" className="btn-soft mt-4 inline-flex items-center gap-2">
+            <span aria-hidden="true">←</span>
+            <span>Вернуться к списку</span>
+          </Link>
         </div>
       </main>
     );
@@ -77,14 +80,27 @@ export default async function CarDetailPage({ params }: Props) {
 
   return (
     <main className="container-main py-4 md:py-8">
-      <div className="mb-6">
-        <Link href="/cars" className="inline-flex items-center gap-1.5 text-sm text-slate-500 transition hover:text-slate-900">
-          Назад к списку
-        </Link>
-        <h1 className="mt-3 text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">{carTitle}</h1>
+      <div className="mb-5 flex flex-col gap-3 md:mb-6 md:gap-4">
+        <div>
+          <Link
+            href="/cars"
+            className="btn-soft inline-flex items-center gap-2 border-slate-300 bg-white/95 text-slate-900 shadow-sm hover:-translate-y-0.5 hover:border-slate-400 hover:bg-white hover:shadow-md"
+          >
+            <span aria-hidden="true">←</span>
+            <span>Назад к списку</span>
+          </Link>
+        </div>
+        <div>
+          <div className="mb-2 inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600 ring-1 ring-slate-200">
+            Карточка автомобиля
+          </div>
+        </div>
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900 md:text-3xl">
+          {carTitle}
+        </h1>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_380px]">
+      <div className="grid grid-cols-1 gap-4 md:gap-6 lg:grid-cols-[1fr_380px]">
         <div>
           <div className="overflow-hidden rounded-2xl">
             <CarGallery title={carTitle} images={car.imageUrls || []} />
@@ -92,18 +108,18 @@ export default async function CarDetailPage({ params }: Props) {
         </div>
 
         <aside className="flex flex-col gap-4">
-          <div className="panel p-6">
+          <div className="panel p-4 sm:p-6">
             <div className="mb-4">
               <div className="text-sm font-medium text-slate-500">Цена</div>
-              <div className="mt-2 text-3xl font-bold text-slate-900">{formatMoneyPair(car.price, car.priceRub)}</div>
+              <div className="mt-2 text-2xl font-bold leading-tight text-slate-900 sm:text-3xl">{formatMoneyPair(car.price, car.priceRub)}</div>
               <div className="mt-1 text-xs text-slate-500">Базовая цена на аукционе</div>
             </div>
             {priceSpecs.length > 0 ? (
               <div className="space-y-2.5 border-t border-slate-200 pt-4">
                 {priceSpecs.map(([label, value]) => (
-                  <div key={String(label)} className="flex items-center justify-between">
+                  <div key={String(label)} className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                     <span className="text-sm text-slate-600">{label}</span>
-                    <span className="font-semibold text-slate-900">{String(value)}</span>
+                    <span className="font-semibold text-slate-900 sm:text-right">{String(value)}</span>
                   </div>
                 ))}
               </div>
@@ -114,7 +130,7 @@ export default async function CarDetailPage({ params }: Props) {
           </div>
 
           {sellerSpecs.length > 0 ? (
-            <div className="panel p-6">
+            <div className="panel p-4 sm:p-6">
               <h3 className="mb-4 text-sm font-semibold text-slate-700">Продавец</h3>
               <div className="space-y-3">
                 {sellerSpecs.map(([label, value]) => (
@@ -127,7 +143,7 @@ export default async function CarDetailPage({ params }: Props) {
             </div>
           ) : null}
 
-          <div className="panel p-6">
+          <div className="panel p-4 sm:p-6">
             <h3 className="mb-4 text-sm font-semibold text-slate-700">Коротко</h3>
             <div className="space-y-3">
               {[
@@ -137,9 +153,9 @@ export default async function CarDetailPage({ params }: Props) {
                 ["Привод", toDisplay(car.drive)],
                 ["Топливо", toDisplay(car.fuel)],
               ].map(([label, value]) => (
-                <div key={String(label)} className="flex items-center justify-between border-b border-slate-200 pb-2.5 last:border-0">
+                <div key={String(label)} className="flex flex-col gap-1 border-b border-slate-200 pb-2.5 last:border-0 sm:flex-row sm:items-center sm:justify-between">
                   <span className="text-sm text-slate-600">{label}</span>
-                  <span className="font-semibold text-slate-900">{String(value)}</span>
+                  <span className="font-semibold text-slate-900 sm:text-right">{String(value)}</span>
                 </div>
               ))}
             </div>
@@ -147,10 +163,10 @@ export default async function CarDetailPage({ params }: Props) {
         </aside>
       </div>
 
-      <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="panel p-6">
+      <div className="mt-6 grid grid-cols-1 gap-4 md:mt-8 md:gap-6 lg:grid-cols-2">
+        <div className="panel p-4 sm:p-6">
           <h2 className="mb-5 text-base font-semibold text-slate-800">Основные данные</h2>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-3">
             {mainSpecs.map(([label, value]) => (
               <div key={String(label)} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3">
                 <div className="text-xs font-medium text-slate-600">{label}</div>
@@ -160,26 +176,26 @@ export default async function CarDetailPage({ params }: Props) {
           </div>
         </div>
 
-        <div className="panel p-6">
+        <div className="panel p-4 sm:p-6">
           <h2 className="mb-5 text-base font-semibold text-slate-800">Детальные характеристики</h2>
           <div className="space-y-3">
             {detailSpecs.map(([label, value]) => (
-              <div key={String(label)} className="flex items-start justify-between gap-4 border-b border-slate-200 pb-3 text-sm last:border-0">
-                <span className="text-slate-600 font-medium">{label}</span>
-                <span className="max-w-[60%] break-words text-right font-semibold text-slate-900">{String(value)}</span>
+              <div key={String(label)} className="flex flex-col gap-1 border-b border-slate-200 pb-3 text-sm last:border-0 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                <span className="font-medium text-slate-600">{label}</span>
+                <span className="break-words font-semibold text-slate-900 sm:max-w-[60%] sm:text-right">{String(value)}</span>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="panel p-5">
+      <div className="mt-4 grid grid-cols-1 gap-4 md:mt-6 md:gap-6 lg:grid-cols-2">
+        <div className="panel p-4 sm:p-5">
           <h2 className="mb-3 text-base font-semibold text-slate-800">Описание</h2>
           <p className="whitespace-pre-line text-sm leading-6 text-slate-700">{sanitizeUiText(car.description) || "Описание в объявлении не указано."}</p>
         </div>
 
-        <div className="panel p-5">
+        <div className="panel p-4 sm:p-5">
           <h2 className="mb-3 text-base font-semibold text-slate-800">Опции и оборудование</h2>
           <div className="flex flex-wrap gap-2">
             {car.features?.length ? car.features.map((feature: string) => {
