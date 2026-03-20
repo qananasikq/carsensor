@@ -67,10 +67,12 @@ export default function CarCard({ car }: { car: Car }) {
               src={image}
               alt={title || "Автомобиль"}
               fill
+              unoptimized
               quality={68}
               sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
               className="object-cover transition duration-500 group-hover:scale-[1.03]"
-              loading="lazy"
+              loading="eager"
+              fetchPriority="high"
               placeholder="blur"
               blurDataURL="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 266'%3E%3Crect fill='%23f1f5f9' width='400' height='266'/%3E%3C/svg%3E"
             />

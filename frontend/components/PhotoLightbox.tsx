@@ -41,7 +41,11 @@ export default function PhotoLightbox({ title, images, activeIndex, isOpen, onCl
   useEffect(() => {
     if (total <= 1) return;
 
-    const preloadTargets = [images[clampIndex(safeIndex - 1, total)], images[clampIndex(safeIndex + 1, total)]].filter(Boolean);
+    const preloadTargets = [
+      images[clampIndex(safeIndex - 1, total)],
+      images[clampIndex(safeIndex + 1, total)],
+      images[clampIndex(safeIndex + 2, total)]
+    ].filter(Boolean);
     preloadTargets.forEach((src) => {
       const img = new window.Image();
       img.src = src;
@@ -128,6 +132,9 @@ export default function PhotoLightbox({ title, images, activeIndex, isOpen, onCl
               alt={`${title} ${safeIndex + 1}`}
               fill
               priority
+              unoptimized
+              loading="eager"
+              fetchPriority="high"
               quality={72}
               sizes="80vw"
               className={`object-contain transition-opacity duration-200 ${isImageLoading ? "opacity-0" : "opacity-100"}`}
@@ -165,10 +172,11 @@ export default function PhotoLightbox({ title, images, activeIndex, isOpen, onCl
                   src={image}
                   alt={`${title} ${index + 1}`}
                   fill
+                  unoptimized
                   quality={55}
                   sizes="112px"
                   className="object-cover"
-                  loading="lazy"
+                  loading={Math.abs(index - safeIndex) <= 2 ? "eager" : "lazy"}
                   placeholder="blur"
                   blurDataURL="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 112 80'%3E%3Crect fill='%23334155' width='112' height='80'/%3E%3C/svg%3E"
                 />

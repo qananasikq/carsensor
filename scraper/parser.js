@@ -269,6 +269,44 @@ function fixImageUrl(url = "") {
   return url;
 }
 
+function normalizeCarPhotoUrl(url = "") {
+  const fixed = fixImageUrl(url).trim();
+  if (!fixed) return "";
+
+  return fixed.replace(/_(\d{3})S(\.(?:jpg|jpeg|png|webp))(\?.*)?$/i, "_$1L$2$3");
+}
+
+function isBlockedCarPhotoUrl(url = "") {
+  const value = cleanText(String(url || ""));
+  if (!value) return true;
+
+  return [
+    /360\.car\//i,
+    /\/obvr\//i,
+    /360_img/i,
+    /\/shopinfo\//i,
+    /logo\.(?:jpg|jpeg|png|gif|webp)(\?|$)/i,
+    /qrcode/i,
+    /logo_footer/i,
+    /coupon/i,
+    /placehold\.co/i,
+    /\/static\//i,
+    /\/common\//i
+  ].some((pattern) => pattern.test(value));
+}
+
+function isLikelyCarPhotoUrl(url = "") {
+  const value = normalizeCarPhotoUrl(url);
+  if (!value || isBlockedCarPhotoUrl(value)) return false;
+
+  if (!/^https?:/i.test(value)) return false;
+  if (!/carsensor/i.test(value)) return false;
+  if (!/\/(?:CSphoto)\//i.test(value)) return false;
+  if (!/\.(?:jpg|jpeg|png|webp)(\?|$)/i.test(value)) return false;
+
+  return true;
+}
+
 function extractSourceId(url = "") {
   try {
     const parsed = new URL(url);
@@ -512,9 +550,28 @@ async function parseCarDetail(page, url) {
     }
 
     const imageUrls = Array.from(document.querySelectorAll(selectors.images))
-      .map((img) => img.getAttribute("data-src") || img.getAttribute("data-original") || img.src || "")
-      .filter(Boolean)
-      .map((src) => src.trim());
+      .map((img) => ({
+        src: img.getAttribute("data-src") || img.getAttribute("data-original") || img.src || "",
+        alt: img.getAttribute("alt") || "",
+        width: Number(img.getAttribute("width") || img.naturalWidth || 0),
+        height: Number(img.getAttribute("height") || img.naturalHeight || 0)
+      }))
+      .filter((item) => item.src)
+      .filter((item) => {
+        const src = String(item.src || "").trim();
+        const alt = String(item.alt || "").trim();
+        const smallImage = item.width > 0 && item.height > 0 && item.width <= 140 && item.height <= 140;
+
+        if (!src) return false;
+        if (/360\.car\//i.test(src) || /\/obvr\//i.test(src) || /360_img/i.test(src)) return false;
+        if (/\/shopinfo\//i.test(src) || /qrcode|logo_footer|coupon/i.test(src)) return false;
+        if (!/carsensor/i.test(src)) return false;
+        if (!/\/(?:CSphoto)\//i.test(src)) return false;
+        if (smallImage && !/車|car|auto|中古車/i.test(alt)) return false;
+
+        return true;
+      })
+      .map((item) => String(item.src || "").trim());
 
     const bodyText = document.body?.innerText || "";
     const title = getText(selectors.title) || document.title;
@@ -598,16 +655,16 @@ async function parseCarDetail(page, url) {
   ]).slice(0, 24);
 
   const preferredImages = (raw.imageUrls || [])
-    .map(fixImageUrl)
-    .filter((img) => /^https?:/i.test(img) && /carsensor/i.test(img) && /\.jpg($|\?)/i.test(img));
+    .map(normalizeCarPhotoUrl)
+    .filter(isLikelyCarPhotoUrl);
 
   const resolvedImages = uniqueImageUrls([
     ...preferredImages,
-    ...(raw.imageUrls || []),
+    ...(raw.imageUrls || []).map(normalizeCarPhotoUrl).filter(isLikelyCarPhotoUrl),
     listing.image || ""
   ]
-    .map(fixImageUrl)
-    .filter((img) => /^https?:/i.test(img))
+    .map(normalizeCarPhotoUrl)
+    .filter(isLikelyCarPhotoUrl)
   ).slice(0, 20);
 
   const normalizedDescription = buildDescription(raw.description);

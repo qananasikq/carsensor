@@ -30,6 +30,14 @@ export default function CarGallery({ title, images }: Props) {
   }, [normalized.length]);
 
   useEffect(() => {
+    const preloadTargets = normalized.slice(0, Math.min(8, normalized.length));
+    preloadTargets.forEach((src) => {
+      const img = new window.Image();
+      img.src = src;
+    });
+  }, [normalized]);
+
+  useEffect(() => {
     const preloadTargets = normalized.slice(active, Math.min(active + 3, normalized.length));
     preloadTargets.forEach((src) => {
       const img = new window.Image();
@@ -55,7 +63,10 @@ export default function CarGallery({ title, images }: Props) {
               alt={title}
               fill
               priority
-              quality={85}
+              unoptimized
+              loading="eager"
+              fetchPriority="high"
+              quality={72}
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 50vw"
               className="object-cover transition duration-300 group-hover:scale-[1.02]"
               placeholder="blur"
@@ -88,10 +99,11 @@ export default function CarGallery({ title, images }: Props) {
                     src={img}
                     alt={`${title} ${index + 1}`}
                     fill
+                    unoptimized
                     quality={60}
                     sizes="140px"
                     className="object-cover"
-                    loading="lazy"
+                    loading={index < 3 ? "eager" : "lazy"}
                     placeholder="blur"
                     blurDataURL="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 140 140'%3E%3Crect fill='%23f1f5f9' width='140' height='140'/%3E%3C/svg%3E"
                   />
