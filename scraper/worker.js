@@ -6,9 +6,36 @@ const { pauseBetweenRequests } = require("./normalizers");
 
 dotenv.config();
 
+function readBlockedSourceIds() {
+  return String(process.env.SCRAPER_BLOCKED_SOURCE_IDS || "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+}
+
+function extractSourceIdFromUrl(url = "") {
+  try {
+    const parsed = new URL(url);
+    const parts = parsed.pathname.split("/").filter(Boolean);
+    return parts[parts.length - 2] || parts[parts.length - 1] || parsed.pathname;
+  } catch {
+    const parts = String(url).split("/").filter(Boolean);
+    return parts[parts.length - 2] || parts[parts.length - 1] || String(url);
+  }
+}
+
 async function runWorker() {
   console.log("Scraper started");
   await connectDb();
+
+  const blockedSourceIds = readBlockedSourceIds();
+
+  if (blockedSourceIds.length > 0) {
+    const deleteResult = await Car.deleteMany({
+      sourceId: { $in: blockedSourceIds }
+    });
+    console.log(`Removed ${deleteResult.deletedCount} blocked cars before scraping`);
+  }
 
   const browser = await chromium.launch({
     headless: process.env.HEADLESS !== "false"
@@ -33,8 +60,21 @@ async function runWorker() {
 
     for (const listing of listingLinks) {
       try {
+        const listingSourceId = extractSourceIdFromUrl(listing.url);
+
+        if (blockedSourceIds.includes(listingSourceId)) {
+          console.log(`Skipped blocked listing ${listingSourceId}`);
+          continue;
+        }
+
         await pauseBetweenRequests();
         const car = await parseCarDetail(page, listing);
+
+        if (blockedSourceIds.includes(car.sourceId)) {
+          console.log(`Skipped blocked parsed car ${car.sourceId}`);
+          continue;
+        }
+
         await Car.updateOne(
           { sourceId: car.sourceId },
           { $set: car },

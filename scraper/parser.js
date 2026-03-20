@@ -12,6 +12,7 @@ const {
   translateSpecValue
 } = require("./normalizers");
 const { parseTitleParts, collectSpecValues, mergeBestText, applyRuLayer } = require("./normalize");
+const { translateColor } = require("../shared/colorTranslator");
 
 const SELECTORS = {
   title: "h1",
@@ -19,7 +20,7 @@ const SELECTORS = {
   dlBlocks: "dl",
   description: ".comment",
   features: "ul li",
-  images: "img",
+  images: "#js-mainPhoto-frame img, #js-slider img, #js-photoBox img, .detailSlider img, .subSliderMain img",
   dealerName: ".shop h3",
   dealerPhone: ".tel"
 };
@@ -263,6 +264,30 @@ function formatInspection(text = "") {
   return `${y[0]}-${String(Number(m[1])).padStart(2, "0")}`;
 }
 
+function extractColorFromTitle(title = "") {
+  const source = cleanText(title);
+  if (!source) return "";
+
+  const matches = [...source.matchAll(/[（(]([^()（）]{1,40})[）)]/g)];
+  const candidate = cleanText(matches.at(-1)?.[1] || "");
+  if (!candidate) return "";
+  if (/\d{2,4}|km|cc|ETC|Bluetooth|TV|AW|PKG/i.test(candidate)) return "";
+
+  return candidate;
+}
+
+function resolveColorValue(candidates = []) {
+  for (const candidate of candidates) {
+    const cleaned = cleanText(String(candidate || ""));
+    if (!cleaned) continue;
+
+    const translated = cleanText(translateColor(cleaned) || cleaned);
+    if (translated) return translated;
+  }
+
+  return "";
+}
+
 function fixImageUrl(url = "") {
   if (!url) return "";
   if (url.startsWith("//")) return `https:${url}`;
@@ -305,6 +330,23 @@ function isLikelyCarPhotoUrl(url = "") {
   if (!/\.(?:jpg|jpeg|png|webp)(\?|$)/i.test(value)) return false;
 
   return true;
+}
+
+function isPromotionalImageAlt(alt = "") {
+  const value = cleanText(String(alt || ""));
+  if (!value) return false;
+
+  if (/\d{2,4}-\d{2,4}-\d{3,4}/.test(value)) return true;
+
+  return [
+    /お問い合わせ|お問合せ|ご案内|専門スタッフ/i,
+    /保証|ワランティ|保険|ローン|審査|金利/i,
+    /WEB商談|オンライン商談|自宅に居ながら/i,
+    /最寄り駅|駅までお迎え|徒歩/i,
+    /コーティング|メンテナンス|自社指定工場|整備/i,
+    /販売OK|販売ＯＫ|全国納車|地方のお客様/i,
+    /TEL[:：]?|電話|0564-|0120-/i
+  ].some((pattern) => pattern.test(value));
 }
 
 function extractSourceId(url = "") {
@@ -549,29 +591,62 @@ async function parseCarDetail(page, url) {
       pushDetail(getNodeText(dt), getNodeText(dd));
     }
 
-    const imageUrls = Array.from(document.querySelectorAll(selectors.images))
-      .map((img) => ({
-        src: img.getAttribute("data-src") || img.getAttribute("data-original") || img.src || "",
-        alt: img.getAttribute("alt") || "",
-        width: Number(img.getAttribute("width") || img.naturalWidth || 0),
-        height: Number(img.getAttribute("height") || img.naturalHeight || 0)
-      }))
-      .filter((item) => item.src)
-      .filter((item) => {
-        const src = String(item.src || "").trim();
-        const alt = String(item.alt || "").trim();
-        const smallImage = item.width > 0 && item.height > 0 && item.width <= 140 && item.height <= 140;
+    const galleryCandidates = [];
+    const seenGallerySrc = new Set();
+    const pushGalleryItem = (src, alt, width, height) => {
+      const normalizedSrc = String(src || "").trim();
+      if (!normalizedSrc || seenGallerySrc.has(normalizedSrc)) return;
+      seenGallerySrc.add(normalizedSrc);
+      galleryCandidates.push({
+        src: normalizedSrc,
+        alt: String(alt || "").trim(),
+        width: Number(width || 0),
+        height: Number(height || 0)
+      });
+    };
 
-        if (!src) return false;
-        if (/360\.car\//i.test(src) || /\/obvr\//i.test(src) || /360_img/i.test(src)) return false;
-        if (/\/shopinfo\//i.test(src) || /qrcode|logo_footer|coupon/i.test(src)) return false;
-        if (!/carsensor/i.test(src)) return false;
-        if (!/\/(?:CSphoto)\//i.test(src)) return false;
-        if (smallImage && !/車|car|auto|中古車/i.test(alt)) return false;
+    const mainImg = document.querySelector("#js-mainPhoto-frame img, #js-mainPhoto");
+    if (mainImg) {
+      pushGalleryItem(
+        mainImg.getAttribute("data-src") || mainImg.getAttribute("data-original") || mainImg.src || "",
+        mainImg.getAttribute("alt") || "",
+        mainImg.getAttribute("width") || mainImg.naturalWidth || 0,
+        mainImg.getAttribute("height") || mainImg.naturalHeight || 0
+      );
+    }
 
-        return true;
-      })
-      .map((item) => String(item.src || "").trim());
+    for (const anchor of Array.from(document.querySelectorAll("#js-slider a.js-photo"))) {
+      const img = anchor.querySelector("img");
+      pushGalleryItem(
+        anchor.getAttribute("data-photo") || img?.getAttribute("data-src") || img?.getAttribute("data-original") || img?.src || "",
+        img?.getAttribute("alt") || anchor.getAttribute("title") || "",
+        img?.getAttribute("width") || img?.naturalWidth || 0,
+        img?.getAttribute("height") || img?.naturalHeight || 0
+      );
+    }
+
+    const isPromoAlt = (alt) => /お問い合わせ|お問合せ|ご案内|保証|ワランティ|WEB商談|オンライン商談|保険|ローン|審査|最寄り駅|徒歩|駅までお迎え|専門スタッフ|販売OK|販売ＯＫ|全国納車|全国どこからでも|ご来店なし|総在庫|理想の1台|自社指定工場|コーティング|TEL[:：]?|電話|0\d{1,4}-\d{1,4}-\d{3,4}|GOOD\s*SPEED|グッドスピード/i.test(String(alt || ""));
+
+    const imageUrls = [];
+    for (const item of galleryCandidates) {
+      const src = String(item.src || "").trim();
+      const alt = String(item.alt || "").trim();
+      const smallImage = item.width > 0 && item.height > 0 && item.width <= 140 && item.height <= 140;
+
+      if (!src) continue;
+      if (/360\.car\//i.test(src) || /\/obvr\//i.test(src) || /360_img/i.test(src)) continue;
+      if (/\/shopinfo\//i.test(src) || /qrcode|logo_footer|coupon/i.test(src)) continue;
+      if (!/carsensor/i.test(src)) continue;
+      if (!/\/(?:CSphoto)\//i.test(src)) continue;
+      if (smallImage && !/車|car|auto|中古車/i.test(alt)) continue;
+
+      if (isPromoAlt(alt)) {
+        if (imageUrls.length >= 3) break;
+        continue;
+      }
+
+      imageUrls.push(src);
+    }
 
     const bodyText = document.body?.innerText || "";
     const title = getText(selectors.title) || document.title;
@@ -741,6 +816,16 @@ async function parseCarDetail(page, url) {
     normalizedSpecs.drive
   ]);
 
+  const resolvedColor = resolveColorValue([
+    specs["цвет"],
+    rawSpecs["色"],
+    rawSpecs["カラー"],
+    rawSpecs["ボディカラー"],
+    ruNormalized?.specs?.color,
+    normalizedSpecs.color,
+    extractColorFromTitle(title)
+  ]);
+
   const mergedBrand = mergeBestText(ruNormalized.brand || "", brand);
   const mergedModel = trimModelName(ruNormalized.model || model);
 
@@ -874,7 +959,7 @@ async function parseCarDetail(page, url) {
     extraCostsRub: resolvedExtraCostsRub,
     currency: "JPY",
     region: cleanText(region),
-    color: cleanText(specs["цвет"] || ""),
+    color: resolvedColor,
     transmission: specs["трансмиссия"] || "",
     fuel: cleanText(mergeBestText(specs["топливо"] || "", String(ruNormalized.specs?.fuel_type || ""))),
     engineVolume: cleanText(
