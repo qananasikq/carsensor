@@ -3,23 +3,31 @@
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import PhotoLightbox from "@/components/PhotoLightbox";
+import { getDisplayImageUrls, PLACEHOLDER_IMAGE } from "@/lib/images";
 
 type Props = {
   title: string;
   images: string[];
 };
 
-const PLACEHOLDER = "https://placehold.co/1200x800?text=Фото+отсутствует";
-
 export default function CarGallery({ title, images }: Props) {
   const normalized = useMemo(() => {
-    const unique = Array.from(new Set((images || []).filter(Boolean)));
-    return unique.length ? unique : [PLACEHOLDER];
+    const filtered = getDisplayImageUrls(images || []);
+    return filtered.length ? filtered : [PLACEHOLDER_IMAGE];
   }, [images]);
 
   const [active, setActive] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
-  const activeSrc = normalized[Math.min(active, normalized.length - 1)] || PLACEHOLDER;
+  const activeSrc = normalized[Math.min(active, normalized.length - 1)] || PLACEHOLDER_IMAGE;
+
+  const openLightbox = (index: number) => {
+    setActive(index);
+    setIsOpen(true);
+  };
+
+  useEffect(() => {
+    setActive((current) => Math.min(current, Math.max(normalized.length - 1, 0)));
+  }, [normalized.length]);
 
   useEffect(() => {
     const preloadTargets = normalized.slice(active, Math.min(active + 3, normalized.length));
@@ -38,8 +46,9 @@ export default function CarGallery({ title, images }: Props) {
         <div className={`grid ${hasMultiple ? "grid-cols-1 md:grid-cols-[1fr_120px] lg:grid-cols-[1fr_140px]" : "grid-cols-1"} gap-1`}>
           <button
             type="button"
-            onClick={() => setIsOpen(true)}
+            onClick={() => openLightbox(active)}
             className="group relative block aspect-[4/3] w-full overflow-hidden bg-slate-100 text-left"
+            aria-label="Открыть галерею"
           >
             <Image
               src={activeSrc}
@@ -67,12 +76,13 @@ export default function CarGallery({ title, images }: Props) {
                 <button
                   key={`${img}-${index}`}
                   type="button"
-                  onClick={() => setActive(index)}
+                  onClick={() => openLightbox(index)}
                   className={`relative h-20 w-24 shrink-0 overflow-hidden rounded-xl bg-slate-100 transition md:h-auto md:w-auto md:flex-1 md:min-h-0 md:rounded-none ${
                     index === active
                       ? "ring-2 ring-inset ring-slate-700"
                       : "hover:opacity-85"
                   }`}
+                  aria-label={`Открыть фото ${index + 1}`}
                 >
                   <Image
                     src={img}
@@ -95,6 +105,18 @@ export default function CarGallery({ title, images }: Props) {
             </div>
           ) : null}
         </div>
+
+        {hasMultiple ? (
+          <div className="flex justify-end border-t border-slate-200 px-3 py-2">
+            <button
+              type="button"
+              onClick={() => openLightbox(active)}
+              className="rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+            >
+              Все фото ({normalized.length})
+            </button>
+          </div>
+        ) : null}
       </div>
 
       <PhotoLightbox

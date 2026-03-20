@@ -1,10 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { MouseEvent } from "react";
-
-const PLACEHOLDER = "https://placehold.co/1600x1000?text=Фото+отсутствует";
+import { PLACEHOLDER_IMAGE } from "@/lib/images";
 
 type Props = {
   title: string;
@@ -26,7 +25,8 @@ function clampIndex(index: number, total: number) {
 export default function PhotoLightbox({ title, images, activeIndex, isOpen, onClose, onChange, showThumbnails = true }: Props) {
   const total = images.length;
   const safeIndex = clampIndex(activeIndex, total);
-  const activeSrc = images[safeIndex] || PLACEHOLDER;
+  const activeSrc = images[safeIndex] || PLACEHOLDER_IMAGE;
+  const [isImageLoading, setIsImageLoading] = useState(true);
 
   const goPrev = useCallback(() => {
     if (total <= 1) return;
@@ -47,6 +47,11 @@ export default function PhotoLightbox({ title, images, activeIndex, isOpen, onCl
       img.src = src;
     });
   }, [images, safeIndex, total]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setIsImageLoading(true);
+  }, [activeSrc, isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -111,16 +116,24 @@ export default function PhotoLightbox({ title, images, activeIndex, isOpen, onCl
           ) : null}
 
           <div className="relative h-[50vh] w-full max-w-3xl sm:h-[60vh]">
+            {isImageLoading ? (
+              <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-slate-900/40">
+                <div className="rounded-full border border-white/15 bg-black/35 px-3 py-2 text-sm text-white/90">
+                  Загрузка фото...
+                </div>
+              </div>
+            ) : null}
             <Image
               src={activeSrc}
               alt={`${title} ${safeIndex + 1}`}
               fill
               priority
-              quality={80}
+              quality={72}
               sizes="80vw"
-              className="object-contain"
+              className={`object-contain transition-opacity duration-200 ${isImageLoading ? "opacity-0" : "opacity-100"}`}
               placeholder="blur"
               blurDataURL="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 800'%3E%3Crect fill='%230f172a' width='1200' height='800'/%3E%3C/svg%3E"
+              onLoad={() => setIsImageLoading(false)}
             />
           </div>
 

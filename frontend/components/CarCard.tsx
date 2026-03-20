@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import PhotoLightbox from "@/components/PhotoLightbox";
 import { formatPriceWithKnownRub } from "@/lib/currency";
 import { formatMileage, sanitizeUiText } from "@/lib/display";
+import { getDisplayImageUrls, PLACEHOLDER_IMAGE } from "@/lib/images";
 import { resolveMileageKm } from "@/lib/mileage";
 
 type Car = {
@@ -27,12 +28,10 @@ type Car = {
   };
 };
 
-const PLACEHOLDER_IMAGE = "https://placehold.co/800x500?text=Фото+отсутствует";
-
 export default function CarCard({ car }: { car: Car }) {
   const normalizedImages = useMemo(() => {
-    const unique = Array.from(new Set((car.imageUrls || []).filter(Boolean)));
-    return unique.length ? unique : [PLACEHOLDER_IMAGE];
+    const filtered = getDisplayImageUrls(car.imageUrls || []);
+    return filtered.length ? filtered : [PLACEHOLDER_IMAGE];
   }, [car.imageUrls]);
 
   const fallback = (value: string, empty = "—") => value || empty;
@@ -68,7 +67,7 @@ export default function CarCard({ car }: { car: Car }) {
               src={image}
               alt={title || "Автомобиль"}
               fill
-              quality={75}
+              quality={68}
               sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
               className="object-cover transition duration-500 group-hover:scale-[1.03]"
               loading="lazy"
