@@ -1,12 +1,25 @@
 import { NextResponse } from "next/server";
 
-const BACKEND_URL = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+function getBackendUrl() {
+  const configuredUrl = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL;
+
+  if (configuredUrl) {
+    return configuredUrl.replace(/\/$/, "");
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("Missing BACKEND_URL or NEXT_PUBLIC_API_URL in production");
+  }
+
+  return "http://localhost:4000";
+}
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+    const backendUrl = getBackendUrl();
 
-    const response = await fetch(`${BACKEND_URL}/api/login`, {
+    const response = await fetch(`${backendUrl}/api/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -40,7 +53,8 @@ export async function POST(request: Request) {
     });
 
     return result;
-  } catch {
+  } catch (error) {
+    console.error("Auth login proxy failed:", error);
     return NextResponse.json({ message: "Сервер недоступен" }, { status: 502 });
   }
 }

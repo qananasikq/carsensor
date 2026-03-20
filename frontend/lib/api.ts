@@ -1,6 +1,18 @@
 import { cookies } from "next/headers";
 
-const INTERNAL_BACKEND_URL = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+function getBackendUrl() {
+  const configuredUrl = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL;
+
+  if (configuredUrl) {
+    return configuredUrl.replace(/\/$/, "");
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("Missing BACKEND_URL or NEXT_PUBLIC_API_URL in production");
+  }
+
+  return "http://localhost:4000";
+}
 
 export type CarRecord = {
   _id: string;
@@ -79,7 +91,8 @@ function buildQueryString(searchParams: Record<string, string | undefined>) {
 }
 
 async function fetchFromBackend<T>(path: string, errorMessage: string): Promise<ApiResult<T>> {
-  const response = await fetch(`${INTERNAL_BACKEND_URL}${path}`, {
+  const backendUrl = getBackendUrl();
+  const response = await fetch(`${backendUrl}${path}`, {
     headers: createAuthHeaders(getToken()),
     cache: "no-store"
   });
